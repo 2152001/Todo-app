@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-black to-purple-600">
+        <div class=" bg-gradient-to-br from-black to-purple-600 p-6 rounded-lg shadow-lg w-96 text-white">
+            <h1 class="text-2xl font-semibold mb-4">Task Manager</h1>
+            <!-- Todo list will go here -->
+            <div x-data="todoApp()">
+                <input x-model="newTodo.name" @keydown.enter="addTodo" placeholder="Add a new Task "
+                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200 text-black">
+                <input x-model="newTodo.description" @keydown.enter="addTodo" placeholder="Description"
+                    class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200 text-black">
+                <button @click="addTodo" class="bg-black text-white px-4 py-2 rounded mt-2">Add Task</button>
+                <div class="mt-4 flex space-x-4">
+                    <button @click="filterCompleted = null" class="bg-black text-white px-4 py-2 rounded">All</button>
+                    <button @click="filterCompleted = false"
+                        class="bg-black text-white px-4 py-2 rounded">Active</button>
+                    <button @click="filterCompleted = true"
+                        class="bg-black text-white px-4 py-2 rounded">Completed</button>
+                </div>
+                <ul class="mt-4">
+                    <template x-for="(todo, index) in filteredTodos">
+                        <li class="flex justify-between items-center py-2">
+                            <div>
+                                <input type="checkbox" x-model="todo.completed" class="mr-2"
+                                    x-on:click="toggleCompleted(todo)">
+                                <span contenteditable x-text="todo.name" class="font-semibold"
+                                    :class="{ 'line-through': todo.completed }"
+                                    @input="updateTodoName($event, index)"></span>
+                                <p contenteditable x-text="todo.description" class="text-sm text-gray-500"
+                                    @input="updateTodoDescription($event, index)"></p>
+                            </div>
+                            <button @click="removeTodoAtIndex(index)" class="text-red-500 focus:outline-none">
+                                <i class="material-icons">close</i>
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function todoApp() {
+            return {
+                todos: JSON.parse(localStorage.getItem('todos')) || [],
+                newTodo: { name: '', description: '', completed: false },
+                filterCompleted: null,
+
+                addTodo() {
+                    if (!this.newTodo.name.trim()) return;
+                    this.todos.push({ ...this.newTodo });
+                    this.setTodos(this.todos); // Save todos in localStorage
+                    this.newTodo = { name: '', description: '', completed: false };
+                },
+
+                setTodos(todos) {
+                    localStorage.setItem('todos', JSON.stringify(todos));
+                },
+
+                removeTodoAtIndex(index) {
+                    this.todos.splice(index, 1);
+                    this.setTodos(this.todos); // Save todos in localStorage
+                },
+
+                toggleCompleted(todo) {
+                    todo.completed = !todo.completed;
+                    this.setTodos(this.todos); // Save todos in localStorage
+                },
+
+                updateTodoName(event, index) {
+                    this.todos[index].name = event.target.innerText;
+                    this.setTodos(this.todos); // Save todos in localStorage
+                },
+
+                updateTodoDescription(event, index) {
+                    this.todos[index].description = event.target.innerText;
+                    this.setTodos(this.todos); // Save todos in localStorage
+                },
+
+                get filteredTodos() {
+                    if (this.filterCompleted === null) {
+                        return this.todos;
+                    } else {
+                        return this.todos.filter(todo => todo.completed === this.filterCompleted);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
